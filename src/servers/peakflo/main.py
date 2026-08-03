@@ -122,6 +122,14 @@ async def make_peakflo_request(name, arguments, token):
         method = "PUT"
         url = f"{PEAKFLO_V1_BASE_URL}/invoices/{invoice_external_id}/attachments"
         message = "Attachment added to invoice successfully"
+    elif name == "read_purchase_order":
+        method = "GET"
+        url = f"{PEAKFLO_V1_BASE_URL}/purchase-order/{arguments['externalId']}"
+        message = "Purchase order fetched successfully"
+    elif name == "update_purchase_order":
+        method = "PUT"
+        url = f"{PEAKFLO_V1_BASE_URL}/purchase-order/{arguments['externalId']}"
+        message = "Purchase order updated successfully"
     elif name == "raise_invoice_dispute":
         method = "POST"
         url = f"{PEAKFLO_V1_BASE_URL}/upload-dispute"
@@ -185,6 +193,22 @@ async def make_peakflo_request(name, arguments, token):
         }
 
 
+def _normalize_purchase_order_dates(data):
+    """Convert DD-MM-YYYY date fields returned by the API to ISO (YYYY-MM-DD)
+    so a read result can be passed directly back into update_purchase_order.
+    """
+    if not isinstance(data, dict):
+        return data
+    result = dict(data)
+    for key in ("issueDate", "dueDate", "receiptDate", "deliveryDate"):
+        value = result.get(key)
+        if isinstance(value, str):
+            parts = value.split("-")
+            if len(parts) == 3 and len(parts[2]) == 4:
+                result[key] = f"{parts[2]}-{parts[1]}-{parts[0]}"
+    return result
+
+
 def create_server(user_id, api_key=None):
     server = Server(f"{SERVICE_NAME}-server")
     server.user_id = user_id
@@ -192,6 +216,7 @@ def create_server(user_id, api_key=None):
 
     tools = PeakfloApiToolFactory.get_all_tools()
     tool_names = [tool.name for tool in tools]
+    tool_output_schemas = {tool.name: tool.outputSchema for tool in tools}
 
     @server.list_tools()
     async def handle_list_tools() -> list[Tool]:
@@ -217,7 +242,15 @@ def create_server(user_id, api_key=None):
                     )
                 ]
 
-            return [TextContent(type="text", text=json.dumps(response, indent=2))]
+            content = [TextContent(type="text", text=json.dumps(response, indent=2))]
+
+            if tool_output_schemas.get(name) is not None:
+                data = response.get("data")
+                if name == "read_purchase_order":
+                    data = _normalize_purchase_order_dates(data)
+                return content, data
+
+            return content
 
         except Exception as e:
             return [
