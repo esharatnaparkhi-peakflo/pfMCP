@@ -420,6 +420,10 @@ async def make_peakflo_request(name, arguments, token):
         method = "PUT"
         url = f"{PEAKFLO_V1_BASE_URL}/invoices/{invoice_external_id}/attachments"
         message = "Attachment added to invoice successfully"
+    elif name == "update_purchase_order":
+        method = "PUT"
+        url = f"{PEAKFLO_V1_BASE_URL}/purchase-order/{arguments['externalId']}"
+        message = "Purchase order updated successfully"
     elif name == "raise_invoice_dispute":
         method = "POST"
         url = f"{PEAKFLO_V1_BASE_URL}/upload-dispute"
