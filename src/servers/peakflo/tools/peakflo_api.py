@@ -12,6 +12,10 @@ from servers.peakflo.schemas.invoice import (
     raise_invoice_dispute_schema,
     add_invoice_attachment_schema,
 )
+from servers.peakflo.schemas.purchase_order import (
+    read_purchase_order_output,
+    update_purchase_order_schema,
+)
 
 vendor_tools = [
     Tool(
@@ -60,6 +64,34 @@ invoice_tools = [
         name="add_invoice_attachment",
         description="Add an attachment to an existing invoice. Accepts a signed file URL; the server downloads and base64-encodes it.",
         inputSchema=add_invoice_attachment_schema,
+    ),
+]
+
+
+purchase_order_tools = [
+    Tool(
+        name="read_purchase_order",
+        description="Fetch purchase order details by external ID from Peakflo API",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "externalId": {
+                    "type": "string",
+                    "description": "External ID of the purchase order to fetch",
+                },
+                "tenantId": {
+                    "type": "string",
+                    "description": "Tenant ID",
+                },
+            },
+            "required": ["externalId", "tenantId"],
+        },
+        outputSchema=read_purchase_order_output,
+    ),
+    Tool(
+        name="update_purchase_order",
+        description="Update an existing purchase order with comprehensive details including line items, amounts, dates, and custom fields",
+        inputSchema=update_purchase_order_schema,
     ),
 ]
 
