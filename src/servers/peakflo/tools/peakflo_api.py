@@ -85,7 +85,7 @@ invoice_tools = [
 purchase_order_tools = [
     Tool(
         name="update_purchase_order",
-        description="Update an existing purchase order with comprehensive details including line items, amounts, dates, and custom fields",
+        description="Update an existing purchase order with comprehensive details including line items, amounts, dates, and custom fields. NOTE: this performs a full-object update - supply the complete field set. 'customField' REPLACES the entire existing custom-field array (it does not merge); send every custom field to preserve them. 'status' is carried for validation but does NOT transition the PO (use the dedicated PO status workflow).",
         inputSchema=update_purchase_order_schema,
     ),
 ]

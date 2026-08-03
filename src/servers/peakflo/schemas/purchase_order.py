@@ -157,7 +157,7 @@ update_purchase_order_schema = {
         },
         "status": {
             "type": "string",
-            "description": "Status of the purchase order",
+            "description": "Status value carried on the purchase order. Note: this endpoint does NOT transition PO status - status changes are handled by the dedicated PO status workflow. Provide the current status here as required by the validation contract; it will not be applied as a status change.",
         },
         "totalTax": {
             "type": "number",
@@ -210,7 +210,7 @@ update_purchase_order_schema = {
         },
         "customField": {
             "type": "array",
-            "description": "Array of custom fields",
+            "description": "Array of custom fields. REPLACES the entire existing custom-field array (no merge) - include every custom field to preserve it; omitting this key keeps existing custom fields unchanged.",
             "items": po_custom_field_schema,
         },
         "subsidiaryReference": {
