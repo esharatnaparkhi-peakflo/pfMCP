@@ -1,20 +1,4 @@
-po_custom_field_schema = {
-    "type": "object",
-    "properties": {
-        "customFieldNumber": {
-            "type": "string",
-            "description": "Custom field number can be seen in the peakflo web UI",
-        },
-        "name": {
-            "type": "string",
-            "description": "Custom field name",
-        },
-        "value": {
-            "description": "Custom field value. Can be string, number or array. Dates need to be sent in ISO 8601 date format",
-        },
-    },
-    "required": ["customFieldNumber", "value"],
-}
+from peakflo.schemas.common import custom_field_schema
 
 
 po_item_schema = {
@@ -101,7 +85,7 @@ po_item_schema = {
         "customField": {
             "type": "array",
             "description": "Array of custom fields for the item",
-            "items": po_custom_field_schema,
+            "items": custom_field_schema["items"],
         },
     },
     "required": ["sourceId", "name", "quantity", "unitPrice"],
@@ -211,7 +195,7 @@ update_purchase_order_schema = {
         "customField": {
             "type": "array",
             "description": "Array of custom fields. REPLACES the entire existing custom-field array (no merge) - include every custom field to preserve it; omitting this key keeps existing custom fields unchanged.",
-            "items": po_custom_field_schema,
+            "items": custom_field_schema["items"],
         },
         "subsidiaryReference": {
             "type": "string",
@@ -230,5 +214,5 @@ update_purchase_order_schema = {
         "PONumber",
         "vendorId",
     ],
-    "additionalProperties": false,
+    "additionalProperties": False,
 }
