@@ -1,5 +1,73 @@
 from peakflo.schemas.common import custom_field_schema
 
+# --- nested financial schemas (mirror api/functions/src/schemas/item.ts) ---
+
+wht_schema = {
+    "type": "object",
+    "description": "Withholding tax details for the item",
+    "properties": {
+        "id": {"type": "string", "description": "WHT id"},
+        "code": {"type": "string", "description": "WHT code"},
+        "displayName": {"type": "string", "description": "Display name of the WHT"},
+        "amount": {"type": "number", "description": "WHT amount"},
+    },
+    "required": ["code", "displayName", "amount"],
+}
+
+tax_schema = {
+    "type": "object",
+    "description": "Tax detail for the item",
+    "properties": {
+        "externalId": {"type": "string", "description": "External ID of the tax"},
+        "name": {"type": "string", "description": "Tax name"},
+        "amount": {"type": "number", "description": "Tax amount"},
+        "priceIncludesTax": {
+            "type": "boolean",
+            "description": "Whether the unit price already includes this tax",
+        },
+        "amountType": {
+            "type": "string",
+            "enum": ["Flat", "Fixed", "Percentage"],
+            "description": "How the tax amount is applied",
+        },
+        "category": {
+            "type": "string",
+            "enum": ["VAT", "StampDuty", "Other"],
+            "description": "Tax category",
+        },
+    },
+    "required": ["name", "amount", "amountType"],
+}
+
+discount_schema = {
+    "type": "object",
+    "description": "Discount detail for the item",
+    "properties": {
+        "externalId": {"type": "string", "description": "External ID of the discount"},
+        "name": {"type": "string", "description": "Discount name"},
+        "amount": {"type": "number", "description": "Discount amount"},
+        "amountType": {
+            "type": "string",
+            "enum": ["Flat", "Fixed", "Percentage"],
+            "description": "How the discount amount is applied",
+        },
+        "duration": {
+            "type": "string",
+            "enum": ["Forever", "First N days", "First N cycles", "Specific date"],
+            "description": "Discount duration",
+        },
+        "durationNumber": {
+            "type": "number",
+            "description": "Duration count for First N days/cycles",
+        },
+        "durationDate": {
+            "type": "string",
+            "description": "Specific date (ISO8601)",
+        },
+    },
+    "required": ["name", "amount", "amountType"],
+}
+
 
 po_item_schema = {
     "type": "object",
@@ -56,19 +124,16 @@ po_item_schema = {
                 "Shipping",
             ],
         },
-        "wht": {
-            "type": "object",
-            "description": "Withholding tax details for the item",
-        },
+        "wht": wht_schema,
         "taxes": {
             "type": "array",
             "description": "Array of tax details for the item",
-            "items": {"type": "object"},
+            "items": tax_schema,
         },
         "discounts": {
             "type": "array",
             "description": "Array of discount details for the item",
-            "items": {"type": "object"},
+            "items": discount_schema,
         },
         "totalTax": {
             "type": "number",
@@ -141,6 +206,15 @@ update_purchase_order_schema = {
         },
         "status": {
             "type": "string",
+            "enum": [
+                "draft",
+                "submitted",
+                "approved",
+                "billed",
+                "deleted",
+                "cancelled",
+                "closed",
+            ],
             "description": "Status value carried on the purchase order. Note: this endpoint does NOT transition PO status - status changes are handled by the dedicated PO status workflow. Provide the current status here as required by the validation contract; it will not be applied as a status change.",
         },
         "totalTax": {
@@ -161,7 +235,8 @@ update_purchase_order_schema = {
         },
         "items": {
             "type": "array",
-            "description": "List of items included in the purchase order",
+            "minItems": 1,
+            "description": "List of items included in the purchase order; must contain at least one line item",
             "items": po_item_schema,
         },
         "PONumber": {
