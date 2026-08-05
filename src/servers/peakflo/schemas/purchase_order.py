@@ -9,7 +9,7 @@ wht_schema = {
         "id": {"type": "string", "description": "WHT id"},
         "code": {"type": "string", "description": "WHT code"},
         "displayName": {"type": "string", "description": "Display name of the WHT"},
-        "amount": {"type": "number", "description": "WHT amount"},
+        "amount": {"type": "number", "minimum": 0, "description": "WHT amount"},
     },
     "required": ["code", "displayName", "amount"],
 }
@@ -20,7 +20,7 @@ tax_schema = {
     "properties": {
         "externalId": {"type": "string", "description": "External ID of the tax"},
         "name": {"type": "string", "description": "Tax name"},
-        "amount": {"type": "number", "description": "Tax amount"},
+        "amount": {"type": "number", "minimum": 0, "description": "Tax amount"},
         "priceIncludesTax": {
             "type": "boolean",
             "description": "Whether the unit price already includes this tax",
@@ -45,24 +45,54 @@ discount_schema = {
     "properties": {
         "externalId": {"type": "string", "description": "External ID of the discount"},
         "name": {"type": "string", "description": "Discount name"},
-        "amount": {"type": "number", "description": "Discount amount"},
+        "amount": {"type": "number", "minimum": 0, "description": "Discount amount"},
         "amountType": {
             "type": "string",
             "enum": ["Flat", "Fixed", "Percentage"],
             "description": "How the discount amount is applied",
         },
         "duration": {
-            "type": "string",
-            "enum": ["Forever", "First N days", "First N cycles", "Specific date"],
-            "description": "Discount duration",
-        },
-        "durationNumber": {
-            "type": "number",
-            "description": "Duration count for First N days/cycles",
-        },
-        "durationDate": {
-            "type": "string",
-            "description": "Specific date (ISO8601)",
+            "oneOf": [
+                {
+                    "type": "string",
+                    "enum": [
+                        "Forever",
+                        "First N days",
+                        "First N cycles",
+                        "Specific date",
+                    ],
+                    "description": "Discount duration (bare value)",
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "duration": {
+                            "type": "string",
+                            "enum": ["First N days", "First N cycles"],
+                        },
+                        "durationNumber": {"type": "number", "minimum": 0},
+                    },
+                    "required": ["duration", "durationNumber"],
+                    "additionalProperties": False,
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "duration": {
+                            "type": "string",
+                            "enum": ["Specific date"],
+                        },
+                        "durationdate": {
+                            "type": "string",
+                            "format": "date",
+                            "description": "Specific date (ISO8601)",
+                        },
+                    },
+                    "required": ["duration", "durationdate"],
+                    "additionalProperties": False,
+                },
+            ],
+            "description": "Discount duration - bare value, or object for First N days/cycles or a Specific date",
         },
     },
     "required": ["name", "amount", "amountType"],
@@ -99,6 +129,7 @@ po_item_schema = {
         },
         "unitPrice": {
             "type": "number",
+            "minimum": 0,
             "description": "Price per unit of the item",
         },
         "accountId": {
@@ -137,14 +168,17 @@ po_item_schema = {
         },
         "totalTax": {
             "type": "number",
+            "minimum": 0,
             "description": "Total tax amount for the item",
         },
         "totalDiscount": {
             "type": "number",
+            "minimum": 0,
             "description": "Total discount amount for the item",
         },
         "total": {
             "type": "number",
+            "minimum": 0,
             "description": "Total amount for the item",
         },
         "customField": {
@@ -170,14 +204,17 @@ update_purchase_order_schema = {
         },
         "totalAmount": {
             "type": "number",
+            "minimum": 0,
             "description": "Total amount of the purchase order",
         },
         "POAmount": {
             "type": "number",
+            "minimum": 0,
             "description": "Amount related to the purchase order",
         },
         "totalWHT": {
             "type": "number",
+            "minimum": 0,
             "description": "Total withholding tax amount",
         },
         "currency": {
@@ -219,18 +256,22 @@ update_purchase_order_schema = {
         },
         "totalTax": {
             "type": "number",
+            "minimum": 0,
             "description": "Total tax amount",
         },
         "fxRate": {
             "type": "number",
+            "minimum": 0,
             "description": "Currency conversion rate",
         },
         "convertedAmount": {
             "type": "number",
+            "minimum": 0,
             "description": "Converted amount in base currency",
         },
         "paymentTerms": {
             "type": "number",
+            "minimum": 0,
             "description": "Payment terms in days",
         },
         "items": {
